@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Great Kitchen Rescue v2 — Game PAI Kuliner</title>
+<style>
+  :root{--cream:#fff7ea;--brown:#5a3a1e;--orange:#e8772e;--red:#c8382b;--green:#2e8b57;--gold:#f2b632;--dark:#2b1b10;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:radial-gradient(circle at top,#3b2515,#1a100a 70%);color:var(--dark);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:12px}
+  #app{width:100%;max-width:880px}
+  .card{background:var(--cream);border-radius:20px;padding:26px;box-shadow:0 20px 50px rgba(0,0,0,.5);border:6px solid var(--brown);animation:pop .35s ease;margin:10px 0}
+  @keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+  h1{font-size:2rem;color:var(--red);text-align:center;letter-spacing:1px}
+  h2{color:var(--brown);margin-bottom:10px}
+  h3{color:var(--brown);margin:14px 0 8px}
+  p{line-height:1.6}
+  .sub{text-align:center;color:var(--brown);font-weight:600;margin-bottom:16px}
+  .ar{font-family:"Amiri","Scheherazade New","Traditional Arabic","Noto Naskh Arabic",serif;font-size:1.45em;direction:rtl;unicode-bidi:isolate;display:inline-block;line-height:1.9}
+  .ayat{background:#fff;border:2px dashed var(--orange);border-radius:12px;padding:12px;margin:10px 0;text-align:right}
+  .ayat small{display:block;text-align:left;color:var(--brown);font-weight:700;margin-bottom:4px;direction:ltr}
+  input[type=text]{width:100%;padding:12px;font-size:1.05rem;border:2px solid var(--brown);border-radius:10px;margin:6px 0 12px}
+  label.lbl{font-weight:700;color:var(--brown)}
+  .btn{display:inline-block;background:var(--orange);color:#fff;border:none;padding:13px 22px;font-size:1.05rem;font-weight:700;border-radius:12px;cursor:pointer;box-shadow:0 5px 0 #a24f14;transition:.1s;margin:3px}
+  .btn:active{transform:translateY(4px);box-shadow:none}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.green{background:var(--green);box-shadow:0 5px 0 #1d5b38}
+  .btn.gray{background:#777;box-shadow:0 5px 0 #444}
+  .btn.red{background:var(--red);box-shadow:0 5px 0 #7a1f16}
+  .btn.blue{background:#2b6cb0;box-shadow:0 5px 0 #1a4370}
+  .btn.small{padding:8px 12px;font-size:.9rem}
+  .center{text-align:center}
+  .hud{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:12px;font-weight:700;color:var(--brown)}
+  .pill{background:#fff;border:2px solid var(--brown);border-radius:999px;padding:5px 12px;font-size:.9rem}
+  .bar{height:14px;background:#ddd;border-radius:999px;overflow:hidden;border:2px solid var(--brown)}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--green),#7dd87d);transition:width .4s}
+  .timer{height:10px;background:#eee;border-radius:999px;overflow:hidden;margin:8px 0 14px}
+  .timer>div{height:100%;background:var(--orange);transition:width 1s linear}
+  .timer.danger>div{background:var(--red)}
+  .qbox{background:#fff;border-radius:14px;padding:16px;border:2px solid #e2c9a6;margin-bottom:12px;font-size:1.05rem}
+  .tag{display:inline-block;background:var(--gold);color:var(--dark);font-size:.75rem;font-weight:800;padding:3px 9px;border-radius:6px;margin-bottom:8px}
+  .tag.tj{background:#8fd3f4}
+  .opts{display:grid;gap:9px}
+  .opt{background:#fff;border:2px solid var(--brown);border-radius:12px;padding:12px 14px;text-align:left;cursor:pointer;font-size:1rem;display:flex;gap:10px;align-items:flex-start;transition:.15s}
+  .opt:hover{background:#fff1dc;transform:translateX(4px)}
+  .opt b{background:var(--brown);color:#fff;border-radius:50%;min-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .opt.correct{background:#d8f5e3;border-color:var(--green)}
+  .opt.wrong{background:#fbd9d5;border-color:var(--red)}
+  .opt.hidden{opacity:.25;pointer-events:none}
+  .opt:disabled{cursor:default}
+  .feedback{margin-top:14px;padding:14px;border-radius:12px;font-weight:600;animation:pop .3s}
+  .feedback.ok{background:#d8f5e3;border:2px solid var(--green)}
+  .feedback.no{background:#fbd9d5;border:2px solid var(--red)}
+  .feedback small{display:block;font-weight:400;margin-top:6px;line-height:1.5}
+  .lifelines{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+  .stage-big{font-size:3.5rem;text-align:center}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0}
+  .box{background:#fff;border:2px solid var(--brown);border-radius:12px;padding:12px;text-align:center}
+  .box .big{font-size:2rem;font-weight:800;color:var(--red)}
+  .cert{border:8px double var(--gold);background:#fffdf5;padding:22px;text-align:center;border-radius:12px;margin:14px 0}
+  .cert h3{color:var(--brown);font-size:1.5rem;margin:8px 0}
+  .review-item{background:#fff;border-left:6px solid var(--red);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:.95rem}
+  .review-item.ok{border-left-color:var(--green)}
+  .reflect{background:#fff6d6;border:2px solid var(--gold);border-radius:12px;padding:14px;margin-top:14px;font-style:italic;line-height:1.7}
+  .shake{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+  /* mode pilihan */
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 14px}
+  .modecard{background:#fff;border:3px solid #e2c9a6;border-radius:12px;padding:12px;cursor:pointer;display:block;transition:.15s}
+  .modecard:has(input:checked){border-color:var(--orange);background:#fff1dc;box-shadow:0 0 0 3px rgba(232,119,46,.25)}
+  .modecard input{margin-right:6px}
+  .modecard small{display:block;color:#666;margin-top:4px;line-height:1.4}
+  /* leaderboard */
+  .lbwrap{overflow-x:auto}
+  .lb{width:100%;border-collapse:collapse;font-size:.9rem;background:#fff;border-radius:10px;overflow:hidden}
+  .lb th,.lb td{border:1px solid #e2c9a6;padding:7px 9px;text-align:left;white-space:nowrap}
+  .lb th{background:var(--brown);color:#fff;position:sticky;top:0}
+  .lb tr:nth-child(even) td{background:#fffaf0}
+  .lb tr.me td{background:#fff1b8;font-weight:700}
+  .empty{text-align:center;color:#888;padding:14px;font-style:italic}
+  details summary{cursor:pointer;font-weight:700;color:var(--brown);padding:6px 0}
+  @media(max-width:520px){h1{font-size:1.5rem}.card{padding:16px}.stage-big{font-size:2.6rem}.modes{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= PENGATURAN GURU ================= */
+const GURU_PIN = "1234";            // ganti PIN untuk reset leaderboard
+const CSV_SEP  = ";";               // pemisah kolom CSV (";" cocok untuk Excel Indonesia)
+const LB_KEY   = "kitchen_rescue_lb_v2";
+
+/* ================= DATA SOAL ================= */
+const AYAT = {
+ nisa:{n:"Q.S. an-Nisā'/4: 142",t:"إِنَّ ٱلْمُنَٰفِقِينَ يُخَٰدِعُونَ ٱللَّهَ وَهُوَ خَٰدِعُهُمْ وَإِذَا قَامُوٓا۟ إِلَى ٱلصَّلَوٰةِ قَامُوا۟ كُسَالَىٰ يُرَآءُونَ ٱلنَّاسَ وَلَا يَذْكُرُونَ ٱللَّهَ إِلَّا قَلِيلًا"},
+ munafiqun:{n:"Q.S. al-Munāfiqūn/63: 4",t:"وَإِذَا رَأَيْتَهُمْ تُعْجِبُكَ أَجْسَامُهُمْ ۖ وَإِن يَقُولُوا۟ تَسْمَعْ لِقَوْلِهِمْ ۖ كَأَنَّهُمْ خُشُبٌ مُّسَنَّدَةٌ ۖ يَحْسَبُونَ كُلَّ صَيْحَةٍ عَلَيْهِمْ ۚ هُمُ ٱلْعَدُوُّ فَٱحْذَرْهُمْ ۚ قَٰتَلَهُمُ ٱللَّهُ ۖ أَنَّىٰ يُؤْفَكُونَ"},
+ zumar:{n:"Q.S. az-Zumar/39: 22",t:"أَفَمَن شَرَحَ ٱللَّهُ صَدْرَهُۥ لِلْإِسْلَٰمِ فَهُوَ عَلَىٰ نُورٍ مِّن رَّبِّهِۦ ۚ فَوَيْلٌ لِّلْقَٰسِيَةِ قُلُوبُهُم مِّن ذِكْرِ ٱللَّهِ ۚ أُو۟لَٰٓئِكَ فِى ضَلَٰلٍ مُّبِينٍ"}
+};
+const A = s => `<span class="ar">${s}</span>`;
+
+const Q = [
+/* ---------- TAHAP 1 ---------- */
+{s:1,q:`Dalam Q.S. an-Nisā'/4: 142 terdapat lafal ${A("يُخَٰدِعُونَ ٱللَّهَ")}. Makna yang paling tepat adalah orang munafik …`,o:["menaati Allah secara sembunyi-sembunyi","mengingkari Allah secara terang-terangan","hendak menipu Allah dengan menampakkan iman padahal hatinya ingkar","bersumpah palsu dengan menyebut nama Allah","memohon pertolongan Allah hanya ketika terdesak"],a:2,e:"Munafik menampakkan iman di luar, tetapi menyembunyikan keingkaran di dalam hati."},
+{s:1,q:`Potongan Q.S. an-Nisā'/4: 142 yang menggambarkan sikap munafik ketika salat adalah …`,o:[A("وَلَا يَذْكُرُونَ ٱللَّهَ إِلَّا قَلِيلًا"),A("قَامُوا۟ كُسَالَىٰ"),A("وَهُوَ خَٰدِعُهُمْ"),A("إِنَّ ٱلْمُنَٰفِقِينَ"),A("يُخَٰدِعُونَ ٱللَّهَ")],a:1,e:"Qāmū kusālā = mereka berdiri (salat) dengan malas."},
+{s:1,q:`Lafal ${A("يُرَآءُونَ ٱلنَّاسَ")} menunjukkan penyakit hati riya. Pengertian riya yang paling tepat adalah …`,o:["beramal tergesa-gesa agar cepat selesai","beramal dengan tujuan agar dilihat dan dipuji manusia","beramal sedikit tetapi terus-menerus","menceritakan amal setelah dikerjakan","beramal karena takut dihukum"],a:1,e:"Riya = amal yang niatnya untuk dilihat/dipuji manusia, bukan karena Allah."},
+{s:1,q:`Q.S. al-Munāfiqūn/63: 4 turun berkaitan dengan tokoh munafik Madinah yang penampilannya menawan dan fasih bicara, yaitu …`,o:["Abu Lahab","Abu Jahal","Musailamah al-Kadzdzab","Abdullah bin Ubay bin Salul","Umayyah bin Khalaf"],a:3,e:"Abdullah bin Ubay adalah pemimpin kaum munafik Madinah."},
+{s:1,q:`Arti perumpamaan ${A("خُشُبٌ مُّسَنَّدَةٌ")} dalam Q.S. al-Munāfiqūn/63: 4 adalah …`,o:["pohon rindang yang berbuah","batu yang licin dan keras","kayu yang tersandar","bangunan megah tanpa penghuni","lampu yang padam"],a:2,e:"Kayu tersandar: tampak bagus tetapi tidak berguna dan tidak bernyawa."},
+{s:1,q:`Lafal ${A("يَحْسَبُونَ كُلَّ صَيْحَةٍ عَلَيْهِمْ")} menggambarkan karakter munafik yang …`,o:["pemberani menghadapi risiko","selalu curiga dan ketakutan karena batinnya tidak tenang","mudah memaafkan","tenang dan percaya diri","gemar menolong tanpa pamrih"],a:1,e:"Mereka mengira setiap teriakan ditujukan kepada mereka: cerminan hati yang gelisah."},
+{s:1,q:`Potongan Q.S. az-Zumar/39: 22 yang berisi ancaman celaka bagi orang berhati keras adalah …`,o:[A("أَفَمَن شَرَحَ ٱللَّهُ صَدْرَهُۥ"),A("فَهُوَ عَلَىٰ نُورٍ مِّن رَّبِّهِۦ"),A("فَوَيْلٌ لِّلْقَٰسِيَةِ قُلُوبُهُم مِّن ذِكْرِ ٱللَّهِ"),A("أُو۟لَٰٓئِكَ فِى ضَلَٰلٍ مُّبِينٍ"),A("لِلْإِسْلَٰمِ")],a:2,e:"Fawailun = maka celakalah; lil-qāsiyati qulūbuhum = bagi yang keras hatinya."},
+{s:1,q:`Dalam Q.S. az-Zumar/39: 22, hati yang keras dibandingkan dengan kondisi hati yang …`,o:["dipenuhi rasa takut kepada makhluk","dilapangkan Allah untuk menerima Islam sehingga berada di atas cahaya","sibuk memikirkan dunia","ragu-ragu menerima kebenaran","lemah dan mudah putus asa"],a:1,e:"Syaraḥa ṣadrahu lil-Islām = dilapangkan dadanya untuk Islam."},
+{s:1,q:`Hadis: tanda munafik ada empat — dusta, ingkar janji, khianat, curang saat bertengkar. Yang <u>bukan</u> tanda munafik menurut hadis tersebut adalah …`,o:["menyebut produk «fresh» padahal sisa kemarin","berjanji menyelesaikan pesanan tetapi sengaja tidak menepati","memakai uang kas kelompok praktik untuk pribadi","memfitnah teman saat berselisih","enggan mempelajari resep baru karena merasa sudah bisa"],a:4,e:"Enggan belajar itu kesombongan/keras hati, bukan salah satu dari 4 tanda munafik dalam hadis."},
+{s:1,q:`Seorang siswa beriman dan rajin salat, tetapi sering berbohong dan ingkar janji kepada teman satu kelompok. Perilaku ini termasuk …`,o:["nifaq i'tiqādī yang mengeluarkan dari Islam","nifaq 'amalī: tidak mengeluarkan dari Islam tetapi termasuk dosa besar","kufur akbar","syirik kecil","fasik ringan yang tidak berdosa"],a:1,e:"Nifaq 'amalī = kemunafikan dalam perbuatan, bukan dalam keyakinan."},
+{s:1,tj:1,q:`<b>TAJWID.</b> Hukum bacaan pada lafal ${A("إِنَّ")} dalam ${A("إِنَّ ٱلْمُنَٰفِقِينَ")} adalah …`,o:["idgham bighunnah","ikhfa haqiqi","ghunnah (nun bertasydid)","izhar halqi","iqlab"],a:2,e:"Nun bertasydid wajib dibaca ghunnah 2 harakat."},
+{s:1,tj:1,q:`<b>TAJWID.</b> Pada ${A("قَامُوٓا۟ إِلَى")} mad thabi'i bertemu hamzah pada kata berikutnya. Hukumnya …`,o:["mad wajib muttashil","mad jaiz munfashil","mad 'aridh lissukun","mad lazim mutsaqqal kilmi","mad 'iwadh"],a:1,e:"Mad bertemu hamzah di kata yang berbeda = mad jaiz munfashil (2–5 harakat)."},
+{s:1,tj:1,q:`<b>TAJWID.</b> Pada ${A("يُرَآءُونَ")} huruf mad bertemu hamzah dalam satu kata. Hukum dan panjangnya …`,o:["mad jaiz munfashil, 2–5 harakat","mad wajib muttashil, 4–5 harakat","mad thabi'i, 2 harakat","mad badal, 2 harakat","mad lazim, 6 harakat"],a:1,e:"Mad bertemu hamzah dalam satu kata = mad wajib muttashil."},
+{s:1,q:`Faktor penyebab hati keras (qaswah al-qalb), <u>kecuali</u> …`,o:["terus berbuat dosa tanpa tobat","jauh dari Al-Qur'an dan zikir","bergaul akrab dengan orang lalai","rutin mengingat kematian dan ziarah kubur","berlebihan tertawa dan mengejar dunia"],a:3,e:"Mengingat kematian justru melembutkan hati."},
+
+/* ---------- TAHAP 2 ---------- */
+{s:2,q:`Lafal ${A("وَهُوَ خَٰدِعُهُمْ")} tidak boleh dipahami bahwa Allah bersifat penipu. Pemahaman yang tepat …`,o:["Allah mengikuti cara munafik agar mereka merasa aman","Allah membalas tipu daya mereka dengan membiarkan mereka dalam kesesatan dan membongkar kepalsuannya","Allah menipu mereka karena mereka lemah","Allah bekerja sama dengan malaikat mengelabui mereka","ayat ini hanya untuk munafik zaman Nabi"],a:1,e:"Ini bentuk musyākalah (kesamaan lafal): balasan setimpal atas tipu daya mereka."},
+{s:2,q:`Hadis: «Salat terberat bagi munafik adalah Isya dan Subuh.» Dihubungkan dengan ${A("قَامُوا۟ كُسَالَىٰ يُرَآءُونَ ٱلنَّاسَ")}, kesimpulannya …`,o:["Isya dan Subuh lebih ringan hukumnya","kemalasan muncul justru ketika tidak ada yang melihat, karena motivasinya pujian manusia","munafik tidak pernah salat","berjamaah hanya wajib Isya–Subuh","yang mengantuk saat Subuh pasti munafik"],a:1,e:"Isya dan Subuh gelap, sedikit yang melihat — riya kehilangan «panggungnya»."},
+{s:2,q:`Rendi rajin bersihkan station, pakai hairnet, cuci tangan sesuai SOP <i>hanya saat chef mengawasi</i>. Saat tidak diawasi, semua diabaikan. Analoginya …`,o:[A("يَحْسَبُونَ كُلَّ صَيْحَةٍ عَلَيْهِمْ"),A("فَوَيْلٌ لِّلْقَٰسِيَةِ قُلُوبُهُم"),A("يُرَآءُونَ ٱلنَّاسَ"),A("كَأَنَّهُمْ خُشُبٌ مُّسَنَّدَةٌ"),A("أُو۟لَٰٓئِكَ فِى ضَلَٰلٍ مُّبِينٍ")],a:2,e:"Yurā'ūnan-nās: berbuat baik hanya agar dilihat orang."},
+{s:2,q:`Peserta lomba tampil dengan seragam rapi, tegap, presentasi meyakinkan — ternyata pakai bahan kedaluwarsa dan berbohong ke juri. Pesan ${A("تُعْجِبُكَ أَجْسَامُهُمْ … خُشُبٌ مُّسَنَّدَةٌ")} …`,o:["penampilan fisik baik = tanda iman","juri jangan menilai presentasi","penampilan lahiriah yang mengesankan tak bernilai jika kosong dari kejujuran, iman, dan manfaat","yang pandai bicara pasti munafik","seragam chef tidak penting"],a:2,e:"Kayu tersandar: indah di luar, kosong dan tak berguna di dalam."},
+{s:2,q:`Dampak karakter ${A("يَحْسَبُونَ كُلَّ صَيْحَةٍ عَلَيْهِمْ")} terhadap kemajuan seseorang di dunia kerja …`,o:["membuatnya waspada sehingga lebih teliti","rasa bersalah karena kepalsuan membuatnya gelisah, defensif, tidak fokus, sulit berkembang dan berkolaborasi","cepat naik jabatan","tidak berpengaruh","disukai rekan karena rendah hati"],a:1,e:"Orang yang menyimpan kepalsuan selalu cemas ketahuan — energinya habis untuk bertahan, bukan berkembang."},
+{s:2,q:`Allah menyebut munafik ${A("هُمُ ٱلْعَدُوُّ فَٱحْذَرْهُمْ")}. Mengapa munafik lebih berbahaya daripada musuh terang-terangan?`,o:["jumlahnya lebih banyak","senjatanya lebih lengkap","mereka berada di dalam barisan muslimin, sulit dikenali, dan merusak dari dalam","lebih pandai berperang","tidak pernah salat"],a:2,e:"Musuh dalam selimut lebih sulit diantisipasi daripada musuh yang jelas."},
+{s:2,tj:1,q:`<b>TAJWID.</b> (1) ${A("وَإِن يَقُولُوا۟")} (2) ${A("خُشُبٌ مُّسَنَّدَةٌ")} (3) ${A("كُلَّ صَيْحَةٍ عَلَيْهِمْ")} (4) ${A("نُورٍ مِّن")}. Yang sama-sama <b>idgham bighunnah</b> …`,o:["(1), (2), dan (3)","(1), (2), dan (4)","(2), (3), dan (4)","(1) dan (3)","(3) dan (4)"],a:1,e:"(1) nun sukun+ya, (2) tanwin+mim, (4) tanwin+mim → bighunnah. (3) tanwin+'ain → izhar halqi."},
+{s:2,tj:1,q:`<b>TAJWID.</b> Pada ${A("قُلُوبُهُم مِّن")} mim sukun bertemu mim. Hukumnya …`,o:["izhar syafawi","ikhfa syafawi","idgham mimi (mutamatsilain)","idgham bilaghunnah","iqlab"],a:2,e:"Mim sukun bertemu mim = idgham mimi, dibaca dengung."},
+{s:2,tj:1,q:`<b>TAJWID.</b> ${A("مِّن رَّبِّهِۦ")} dan ${A("فَوَيْلٌ لِّلْقَٰسِيَةِ")} memiliki hukum yang sama, yaitu …`,o:["idgham bighunnah (nun sukun/tanwin + ra, lam)","idgham bilaghunnah (nun sukun/tanwin + ra, lam)","ikhfa haqiqi","izhar halqi","idgham mimi"],a:1,e:"Huruf idgham bilaghunnah hanya dua: lam dan ra."},
+{s:2,tj:1,q:`<b>TAJWID.</b> Pada ${A("أَفَمَن شَرَحَ")} nun sukun bertemu syin. Cara membacanya …`,o:["jelas tanpa dengung (izhar halqi)","dilebur dengan dengung (idgham bighunnah)","samar dengan dengung ±2 harakat (ikhfa haqiqi)","diubah menjadi mim (iqlab)","dilebur tanpa dengung"],a:2,e:"Syin termasuk 15 huruf ikhfa."},
+{s:2,tj:1,q:`<b>TAJWID.</b> (1) ${A("يُخَٰدِعُونَ ٱللَّهَ")} (2) ${A("قَٰتَلَهُمُ ٱللَّهُ")} (3) ${A("ذِكْرِ ٱللَّهِ")} (4) ${A("شَرَحَ ٱللَّهُ")}. Lafẓul jalālah yang dibaca <b>tarqīq</b> (tipis) …`,o:["(1) saja","(2) saja","(3) saja","(1) dan (4)","(2) dan (3)"],a:2,e:"Hanya (3) yang didahului kasrah → tarqīq. Lainnya didahului fathah/dhammah → tafkhīm."},
+{s:2,tj:1,q:`<b>TAJWID.</b> Pada ${A("صَدْرَهُۥ")} terdapat dua hukum sekaligus, yaitu …`,o:["qalqalah kubra dan mad thabi'i","qalqalah sughra dan mad shilah qashirah","ikhfa dan mad badal","izhar dan mad 'iwadh","ghunnah dan mad lin"],a:1,e:"Dal sukun di tengah kata → qalqalah sughra; ha dhamir tidak bertemu hamzah → mad shilah qashirah."},
+{s:2,q:`Makna «cahaya» dalam ${A("فَهُوَ عَلَىٰ نُورٍ مِّن رَّبِّهِۦ")} dalam konteks pengembangan diri …`,o:["cahaya fisik dari wajah","petunjuk yang membuat mampu membedakan benar–salah, terbuka menerima ilmu, dan terus maju","kecerdasan bawaan","popularitas","keberuntungan tanpa usaha"],a:1,e:"Nūr = hidayah yang menerangi jalan; orang yang berjalan di atas cahaya tidak tersesat."},
+{s:2,q:`Dina berjanji menyiapkan <i>mise en place</i> untuk kelompoknya, tidak melakukannya, lalu menyalahkan teman di depan instruktur. Dampak paling mendasar bagi tim …`,o:["tim lebih kompak","instruktur memberi nilai tambah","hilangnya kepercayaan (trust) yang merupakan fondasi kerja tim sehingga kolaborasi rusak","tim lebih cepat selesai","tidak berdampak"],a:2,e:"Ingkar janji + khianat + curang saat berselisih = tiga tanda munafik sekaligus; trust hancur."},
+{s:2,q:`Chef senior selalu menolak masukan tentang <i>food safety</i> dan kehalalan bahan, meremehkan nasihat, marah ketika ditegur. Menurut Q.S. az-Zumar/39: 22 ini mencerminkan …`,o:["syarḥ aṣ-ṣadr karena percaya diri","qaswah al-qalb: hati yang tidak lagi tersentuh peringatan dan kebenaran","sikap profesional yang wajar","ketegasan pemimpin","kehati-hatian menerima informasi"],a:1,e:"Hati yang keras tertutup dari zikir dan nasihat."},
+{s:2,q:`Kafir menolak kebenaran secara terbuka; munafik menampakkan iman tetapi menyembunyikan ingkar. Dari sisi dampak kepada umat …`,o:["dampaknya sama persis","munafik lebih mudah dihadapi","munafik lebih merusak karena kepalsuannya menghancurkan kepercayaan dari dalam, sedangkan musuh terbuka mudah diantisipasi","kafir lebih berbahaya karena lebih banyak","tidak ada bedanya"],a:2,e:"Karena itu munafik ditempatkan di kerak neraka paling bawah (Q.S. an-Nisā': 145)."},
+
+/* ---------- TAHAP 3 ---------- */
+{s:3,q:`(1) Malas ibadah saat tak dilihat (2) Fasih bicara tetapi tak jujur (3) Menolak nasihat (4) Gelisah dan curiga (5) Sedikit mengingat Allah. Yang bersumber dari <b>Q.S. an-Nisā'/4: 142</b> …`,o:["(1) dan (5)","(2) dan (4)","(3) dan (5)","(1) dan (3)","(2) dan (3)"],a:0,e:"(1) qāmū kusālā yurā'ūn; (5) lā yadzkurūnallāha illā qalīlā. (2)(4) dari al-Munāfiqūn, (3) dari az-Zumar."},
+{s:3,q:`Siswa berpendapat: «Orang yang pernah berbohong satu kali pasti munafik dan keluar dari Islam.» Evaluasinya …`,o:["benar, hadis menyebut dusta tanda munafik","benar, dusta membatalkan syahadat","tidak tepat: dusta termasuk nifaq 'amalī yang tidak mengeluarkan dari Islam, tetapi tetap dosa yang wajib ditinggalkan dan ditobati","tidak tepat, bohong tak ada kaitan dengan munafik","tidak tepat, munafik hanya zaman Nabi"],a:2,e:"Bedakan nifaq i'tiqādī (keyakinan) dan nifaq 'amalī (perbuatan)."},
+{s:3,q:`Usaha katering mencantumkan «100% Halal» dan rajin unggah kegiatan keagamaan untuk menarik pelanggan Muslim, padahal sengaja memakai bahan tidak halal karena murah. Penilaian yang tepat …`,o:["sah-sah saja, strategi pemasaran","hanya melanggar aturan pemerintah","karakter munafik: menampakkan yang berbeda dengan kenyataan demi pujian dan untung; akhirnya menghancurkan kepercayaan dan usaha itu sendiri","boleh selama pelanggan tak tahu","qaswah al-qalb karena tak berzikir"],a:2,e:"Ini gabungan riya + dusta + khianat amanah konsumen."},
+{s:3,q:`«Hati yang keras membuat seseorang tidak akan maju.» Alasan paling logis …`,o:["tidak punya modal","tertutup dari nasihat, ilmu baru, dan evaluasi diri — padahal kemajuan menuntut kesediaan belajar dan berubah","dijauhi teman","tidak diberi rezeki","cepat lelah"],a:1,e:"Growth butuh hati yang terbuka (syarḥ aṣ-ṣadr)."},
+{s:3,q:`Berdasarkan ${A("فَوَيْلٌ لِّلْقَٰسِيَةِ قُلُوبُهُم مِّن ذِكْرِ ٱللَّهِ")}, langkah paling sesuai dengan sebab yang disebutkan ayat untuk melembutkan hati …`,o:["olahraga dan istirahat","mengurangi pergaulan dengan siapa pun","membiasakan zikir, mendekat kepada Al-Qur'an, dan menghadirkan Allah dalam aktivitas harian termasuk saat bekerja","menonton motivasi di medsos","menunggu hati lembut sendiri"],a:2,e:"Ayat menyebut penyebabnya: «min dzikrillāh» — maka obatnya adalah zikir."},
+{s:3,tj:1,q:`<b>TAJWID.</b> Pernyataan yang <b>benar</b> …`,o:[`${A("ٱلصَّلَوٰةِ")} dibaca alif lam qamariyah`,`${A("أَجْسَامُهُمْ")} mengandung qalqalah sughra pada jim sukun`,`${A("مِّن رَّبِّهِۦ")} dibaca idgham bighunnah`,`${A("أُو۟لَٰٓئِكَ")} dibaca mad jaiz munfashil`,`${A("رَأَيْتَهُمْ تُعْجِبُكَ")} dibaca ikhfa syafawi`],a:1,e:"A: syamsiyah. C: bilaghunnah. D: muttashil. E: izhar syafawi. Jim = huruf qalqalah."},
+{s:3,tj:1,q:`<b>TAJWID.</b> Saat waqaf pada ${A("إِلَّا قَلِيلًا")}, tanwin fathah diganti alif yang dipanjangkan 2 harakat. Hukumnya …`,o:["mad 'aridh lissukun","mad lin","mad 'iwadh","mad badal","mad shilah thawilah"],a:2,e:"'Iwadh = pengganti; tanwin fathah diganti alif saat waqaf."},
+{s:3,q:`Juri memberi kritik keras terhadap <i>plating</i> dan rasa masakanmu. Tindakan yang paling mencerminkan syarḥ aṣ-ṣadr …`,o:["membantah juri untuk jaga harga diri","menerima kritik dengan lapang dada, menjadikannya bahan evaluasi, lalu memperbaiki diri","diam tetapi dendam","menyalahkan tim","pura-pura setuju tetapi tak berubah"],a:1,e:"E adalah nifaq; C dan D keras hati; B hati yang lapang."},
+{s:3,q:`Benang merah ketiga ayat tentang mengapa kemunafikan dan kerasnya hati «tidak akan membuat maju» …`,o:["menyebabkan miskin harta","keduanya bersumber dari lalai mengingat Allah dan berorientasi pada penilaian manusia, sehingga amal kosong, kepercayaan hilang, dan pelakunya terjerumus dalam kesesatan nyata","hanya berdampak di akhirat","dijauhi manusia tetapi diterima Allah","sifat bawaan yang tak bisa diubah"],a:1,e:"Illā qalīlā (sedikit zikir) ↔ min dzikrillāh (jauh dari zikir): akar yang sama."},
+{s:3,q:`Fikri sadar sering riya dan berbohong, ingin berubah. Urutan langkah paling tepat: (1) Konsisten jujur diawasi/tidak (2) Mengakui & menyesali kesalahan (3) Tobat, istigfar, luruskan niat (4) Muhasabah berkala (5) Biasakan zikir & Al-Qur'an`,o:["(1)–(2)–(3)–(4)–(5)","(2)–(3)–(5)–(1)–(4)","(3)–(1)–(2)–(5)–(4)","(2)–(1)–(3)–(4)–(5)","(5)–(4)–(3)–(2)–(1)"],a:1,e:"Sadar → tobat → jaga hati dengan zikir → buktikan dengan amal → evaluasi terus."}
+];
+
+const STAGES = {
+ 1:{name:"MISE EN PLACE",icon:"🥕",time:25,pts:10,desc:"Health & Akhlak Inspector tiba di restoran! Sebelum memasak, brigade harus menyiapkan bahan dasar: makna ayat dan tajwid dasar. Cepat dan tepat!",color:"#2e8b57"},
+ 2:{name:"COOKING STATION",icon:"🔥",time:40,pts:20,desc:"Bon pesanan menumpuk! Ada staf yang riya, ingkar janji, dan chef yang keras hati. Analisis setiap kasus di dapur dengan dalil yang tepat.",color:"#e8772e"},
+ 3:{name:"MYSTERY BOX",icon:"🎁",time:60,pts:30,desc:"Final plating! Inspector memberi soal evaluasi tingkat tinggi. Satu keputusan menentukan apakah restoran mendapat Sertifikat Halal & Profesional.",color:"#c8382b"}
+};
+
+/* ================= UTIL ================= */
+let S = {};
+const app = document.getElementById("app");
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const LETTERS = ["A","B","C","D","E"];
+const strip = s => String(s).replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const fmtDate = d => new Date(d).toLocaleString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+
+let actx;
+function beep(type){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    const seq = type==="ok"?[[523,0],[659,.1],[784,.2]] : type==="no"?[[220,0],[160,.15]] : [[880,0]];
+    seq.forEach(([f,t])=>o.frequency.setValueAtTime(f,actx.currentTime+t));
+    g.gain.setValueAtTime(.15,actx.currentTime); g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+.35);
+    o.start(); o.stop(actx.currentTime+.4);
+  }catch(e){}
+}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800);}
+
+/* ================= LEADERBOARD ================= */
+function loadLB(){ try{ return JSON.parse(localStorage.getItem(LB_KEY))||[]; }catch(e){ return []; } }
+function saveLB(arr){ localStorage.setItem(LB_KEY, JSON.stringify(arr)); }
+function sortedLB(){ return loadLB().sort((a,b)=> b.nilai-a.nilai || b.poin-a.poin || a.ts-b.ts); }
+function predikat(pct, closed){
+  if(closed) return "Restoran Ditutup";
+  if(pct>=90) return "MasterChef Akhlak";
+  if(pct>=75) return "Head Chef Terpercaya";
+  if(pct>=60) return "Sous Chef Berbakat";
+  return "Commis Chef";
+}
+function lbTable(limit, highlightId){
+  const lb = sortedLB();
+  if(!lb.length) return `<div class="empty">Belum ada brigade yang menyelesaikan shift. Jadilah yang pertama! 🍳</div>`;
+  const rows = (limit?lb.slice(0,limit):lb).map((e,i)=>{
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+    return `<tr class="${e.id===highlightId?"me":""}">
+      <td class="center">${medal}</td><td>${esc(e.nama)}</td><td>${esc(e.kelas||"-")}</td>
+      <td>${e.mode==="santai"?"🧘 Santai":"⏱️ Kompetisi"}</td>
+      <td class="center"><b>${e.nilai}</b></td><td class="center">${e.benar}/${e.total}</td>
+      <td class="center">${e.poin}</td><td class="center">${e.tjBenar}/${e.tjTotal}</td>
+      <td>${esc(e.predikat)}</td><td>${fmtDate(e.ts)}</td></tr>`;
+  }).join("");
+  return `<div class="lbwrap"><table class="lb">
+    <thead><tr><th>#</th><th>Nama</th><th>Kelas</th><th>Mode</th><th>Nilai</th><th>Benar</th><th>Poin</th><th>Tajwid</th><th>Predikat</th><th>Waktu</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+function lbButtons(){
+  return `<div class="center" style="margin-top:10px">
+    <button class="btn small blue" onclick="exportLB()">📊 Ekspor Rekap ke Excel (CSV)</button>
+    <button class="btn small gray" onclick="screenLeaderboard()">🏆 Lihat Semua</button>
+    <button class="btn small red" onclick="resetLB()">🔐 Reset (PIN Guru)</button>
+  </div>`;
+}
+function resetLB(){
+  const p = prompt("Masukkan PIN Guru untuk menghapus seluruh papan peringkat:");
+  if(p===null) return;
+  if(p!==GURU_PIN) return toast("❌ PIN salah!");
+  if(confirm("Yakin hapus SEMUA data leaderboard? Ekspor dulu ke CSV jika perlu.")){
+    saveLB([]); toast("🧹 Leaderboard dikosongkan."); screenStart();
+  }
+}
+
+/* ================= EKSPOR CSV ================= */
+function downloadCSV(filename, rows){
+  const cell = v => `"${String(v??"").replace(/"/g,'""')}"`;
+  const csv = "\uFEFF" + rows.map(r=>r.map(cell).join(CSV_SEP)).join("\r\n");
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},300);
+  toast("📥 File CSV diunduh — buka dengan Excel.");
+}
+function exportLB(){
+  const lb = sortedLB();
+  if(!lb.length) return toast("Belum ada data untuk diekspor.");
+  const rows = [["Peringkat","Nama","Kelas","Mode","Nilai (0-100)","Benar","Total Soal","Poin","Streak Terbaik","Tajwid Benar","Tajwid Total","Kesehatan Restoran (%)","Predikat","Waktu"]];
+  lb.forEach((e,i)=>rows.push([i+1,e.nama,e.kelas||"",e.mode==="santai"?"Santai (tanpa timer)":"Kompetisi (timer)",e.nilai,e.benar,e.total,e.poin,e.streak,e.tjBenar,e.tjTotal,e.health,e.predikat,fmtDate(e.ts)]));
+  downloadCSV(`Rekap_Kitchen_Rescue_${new Date().toISOString().slice(0,10)}.csv`, rows);
+}
+function exportDetail(){
+  if(!S.log||!S.log.length) return toast("Belum ada detail jawaban.");
+  const rows = [["Nama",S.nama],["Kelas",S.kelas||""],["Mode",S.mode==="santai"?"Santai":"Kompetisi"],["Nilai",Math.round(S.correct/S.list.length*100)],["Benar",`${S.correct}/${S.list.length}`],["Poin",S.score],[],
+    ["No","Tahap","Jenis","Soal","Jawaban Siswa","Kunci","Status","Pembahasan"]];
+  S.log.forEach((l,i)=>rows.push([i+1,l.s,l.tj?"Tajwid":"Materi",strip(l.q),l.ans<0?"(waktu habis)":LETTERS[l.ans]+". "+strip(l.o[l.ans]),LETTERS[l.key]+". "+strip(l.o[l.key]),l.ok?"BENAR":"SALAH",l.e]));
+  downloadCSV(`Detail_${S.nama.replace(/[^\w]+/g,"_")}.csv`, rows);
+}
+
+/* ================= LAYAR ================= */
+function screenStart(){
+  app.innerHTML = `
+  <div class="card">
+    <div class="stage-big">🍳👨‍🍳🍽️</div>
+    <h1>THE GREAT KITCHEN RESCUE</h1>
+    <p class="sub">Misi Dapur Bersih Hati — Game PAI SMK Kuliner • v2.0</p>
+    <div class="qbox">
+      <p><b>Cerita:</b> Restoran bintang lima tempat kalian bekerja terancam ditutup! <i>Health & Akhlak Inspector</i> menemukan «bahan beracun» di dapur: sifat <b>munafik</b> dan <b>hati yang keras</b>. Selesaikan 3 tahap tantangan (40 soal) untuk menyelamatkan restoran dan meraih <b>Sertifikat MasterChef Akhlak</b>.</p>
+      <br><p>📖 Sumber: Q.S. an-Nisā'/4: 142 • Q.S. al-Munāfiqūn/63: 4 • Q.S. az-Zumar/39: 22</p>
+    </div>
+    <label class="lbl">👨‍🍳 Nama Chef / Nama Brigade</label>
+    <input type="text" id="nama" placeholder="contoh: Brigade Pastry / Ahmad Fauzi" maxlength="40">
+    <label class="lbl">🏫 Kelas (opsional)</label>
+    <input type="text" id="kelas" placeholder="contoh: XI Kuliner 2" maxlength="20">
+    <label class="lbl">🎮 Pilih Mode Permainan</label>
+    <div class="modes">
+      <label class="modecard"><input type="radio" name="mode" value="timer" checked><b>⏱️ Mode Kompetisi</b><small>Ada batas waktu tiap soal (25/40/60 dtk), bonus kecepatan, kartu Bekukan Waktu. Cocok untuk lomba antar-brigade.</small></label>
+      <label class="modecard"><input type="radio" name="mode" value="santai"><b>🧘 Mode Santai</b><small>Tanpa batas waktu. Tenang dan fokus pada ketepatan. Cocok untuk latihan mandiri atau siswa berkebutuhan khusus.</small></label>
+    </div>
+    <div class="center"><button class="btn" onclick="startGame()">🔥 MULAI SHIFT DAPUR</button></div>
+
+    <h3>🏆 Papan Peringkat — 10 Besar</h3>
+    ${lbTable(10)}
+    ${lbButtons()}
+
+    <details style="margin-top:14px"><summary>📜 Lihat Ayat Rujukan</summary>
+      ${Object.values(AYAT).map(a=>`<div class="ayat"><small>${a.n}</small><span class="ar">${a.t}</span></div>`).join("")}
+    </details>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+function screenLeaderboard(highlightId){
+  app.innerHTML = `
+  <div class="card">
+    <h1>🏆 PAPAN PERINGKAT</h1>
+    <p class="sub">Seluruh brigade/siswa yang telah menyelesaikan shift (${loadLB().length} entri)</p>
+    ${lbTable(0, highlightId)}
+    ${lbButtons()}
+    <div class="center" style="margin-top:8px"><button class="btn green" onclick="screenStart()">⬅️ Kembali ke Awal</button></div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+function startGame(){
+  const nama = document.getElementById("nama").value.trim() || "Chef Tanpa Nama";
+  const kelas = document.getElementById("kelas").value.trim();
+  const mode = document.querySelector('input[name=mode]:checked').value;
+  S = {nama, kelas, mode, score:0, health:100, streak:0, best:0, correct:0, life50:2, lifeFreeze: mode==="timer"?1:0, log:[], stage:1, idx:0, list:[], saved:false, id:null};
+  S.list = [1,2,3].flatMap(st => shuffle(Q.filter(q=>q.s===st).map(q=>({...q}))));
+  screenStageIntro(1);
+}
+
+function screenStageIntro(st){
+  const d=STAGES[st];
+  app.innerHTML = `
+  <div class="card" style="border-color:${d.color}">
+    <div class="stage-big">${d.icon}</div>
+    <h1 style="color:${d.color}">TAHAP ${st}: ${d.name}</h1>
+    <p class="sub">${Q.filter(q=>q.s===st).length} soal • ${S.mode==="timer"?d.time+" detik/soal • +"+d.pts+" poin (+bonus waktu)":"tanpa batas waktu • +"+d.pts+" poin per jawaban benar"}</p>
+    <div class="qbox"><p>${d.desc}</p></div>
+    <div class="center"><button class="btn" style="background:${d.color};box-shadow:0 5px 0 rgba(0,0,0,.3)" onclick="nextQuestion()">👨‍🍳 YES, CHEF!</button></div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+let timerId=null, timeLeft=0, answered=false;
+
+function nextQuestion(){
+  if(S.idx>=S.list.length) return screenResult();
+  const q=S.list[S.idx];
+  if(q.s!==S.stage){S.stage=q.s;return screenStageIntro(q.s);}
+  renderQuestion(q);
+}
+
+function renderQuestion(q){
+  answered=false;
+  const d=STAGES[q.s], total=S.list.length, timerOn = S.mode==="timer";
+  app.innerHTML = `
+  <div class="card" id="qcard">
+    <div class="hud">
+      <span class="pill">👨‍🍳 ${esc(S.nama)}</span>
+      <span class="pill">${d.icon} Tahap ${q.s} • Soal ${S.idx+1}/${total}</span>
+      <span class="pill">⭐ ${S.score}</span>
+      <span class="pill">🔥 Streak ${S.streak}</span>
+      <span class="pill">${timerOn?"⏱️ Kompetisi":"🧘 Santai"}</span>
+    </div>
+    <div style="font-size:.85rem;font-weight:700;color:var(--brown);margin-bottom:3px">❤️ Kesehatan Restoran: <span id="hp">${S.health}</span>%</div>
+    <div class="bar"><div id="hpbar" style="width:${S.health}%"></div></div>
+    ${timerOn?`<div class="timer" id="timerbox"><div id="timerbar" style="width:100%"></div></div>`:`<div style="height:12px"></div>`}
+    <div class="lifelines">
+      <button class="btn small gray" id="l50" onclick="use50()" ${S.life50?"":"disabled"}>🔪 Potong Setengah (${S.life50})</button>
+      ${timerOn?`<button class="btn small gray" id="lfz" onclick="useFreeze()" ${S.lifeFreeze?"":"disabled"}>🧊 Bekukan Waktu (${S.lifeFreeze})</button>
+      <span class="pill" id="clock" style="margin-left:auto">⏱️ ${d.time}s</span>`:``}
+    </div>
+    <div class="qbox">
+      <span class="tag ${q.tj?"tj":""}">${q.tj?"🎯 QUALITY CONTROL: TAJWID":"📋 ORDER TICKET"}</span>
+      <div>${q.q}</div>
+    </div>
+    <div class="opts" id="opts">
+      ${q.o.map((o,i)=>`<button class="opt" id="opt${i}" onclick="answer(${i})"><b>${LETTERS[i]}</b><span>${o}</span></button>`).join("")}
+    </div>
+    <div id="fb"></div>
+  </div>`;
+  window.scrollTo(0,0);
+  clearInterval(timerId);
+  if(timerOn){ timeLeft=d.time; timerId=setInterval(tick,1000); }
+}
+
+function tick(){
+  timeLeft--;
+  const d=STAGES[S.list[S.idx].s];
+  const bar=document.getElementById("timerbar"), box=document.getElementById("timerbox"), clk=document.getElementById("clock");
+  if(!bar) return clearInterval(timerId);
+  bar.style.width=(Math.max(0,timeLeft)/d.time*100)+"%";
+  clk.textContent="⏱️ "+Math.max(0,timeLeft)+"s";
+  if(timeLeft<=5){box.classList.add("danger"); if(timeLeft>0) beep("tick");}
+  if(timeLeft<=0){clearInterval(timerId);answer(-1);}
+}
+
+function use50(){
+  if(!S.life50||answered) return;
+  S.life50--; beep("tick");
+  const q=S.list[S.idx];
+  shuffle(q.o.map((_,i)=>i).filter(i=>i!==q.a)).slice(0,2).forEach(i=>document.getElementById("opt"+i).classList.add("hidden"));
+  const b=document.getElementById("l50"); b.disabled=true; b.textContent=`🔪 Potong Setengah (${S.life50})`;
+  toast("🔪 Sous chef menyingkirkan 2 bahan yang salah!");
+}
+function useFreeze(){
+  if(!S.lifeFreeze||answered||S.mode!=="timer") return;
+  S.lifeFreeze--; beep("tick"); timeLeft+=15;
+  const b=document.getElementById("lfz"); b.disabled=true; b.textContent=`🧊 Bekukan Waktu (${S.lifeFreeze})`;
+  toast("🧊 Waktu ditambah 15 detik!");
+}
+
+function answer(i){
+  if(answered) return;
+  answered=true; clearInterval(timerId);
+  const q=S.list[S.idx], d=STAGES[q.s], ok = i===q.a;
+  document.querySelectorAll(".opt").forEach(b=>b.disabled=true);
+  document.getElementById("opt"+q.a).classList.add("correct");
+  if(!ok && i>=0) document.getElementById("opt"+i).classList.add("wrong");
+  let gained=0;
+  if(ok){
+    S.correct++; S.streak++; S.best=Math.max(S.best,S.streak);
+    const bonus = S.mode==="timer" ? Math.round(Math.max(0,timeLeft)/d.time*10) : 0;
+    const combo = S.streak>=3?5:0;
+    gained=d.pts+bonus+combo; S.score+=gained; beep("ok");
+  }else{
+    S.streak=0; S.health=Math.max(0,S.health-10); beep("no");
+    document.getElementById("qcard").classList.add("shake");
+    document.getElementById("hp").textContent=S.health;
+    document.getElementById("hpbar").style.width=S.health+"%";
+  }
+  S.log.push({s:q.s,q:q.q,ok,ans:i,key:q.a,o:q.o,e:q.e,tj:q.tj});
+  const fb=document.getElementById("fb");
+  fb.innerHTML=`<div class="feedback ${ok?"ok":"no"}">
+    ${ok?`✅ <b>Yes, Chef!</b> Hidangan sempurna. +${gained} ⭐ ${S.streak>=3?"(Combo bonus! 🔥)":""}`:(i<0?"⏰ <b>Waktu habis!</b> Pesanan terlambat.":"❌ <b>Pesanan dikembalikan pelanggan!</b>")}
+    ${!ok?` Jawaban benar: <b>${LETTERS[q.a]}</b>. Kesehatan restoran −10%.`:""}
+    <small>💡 <b>Catatan Head Chef:</b> ${q.e}</small>
+    <div class="center" style="margin-top:12px"><button class="btn green" onclick="proceed()">${S.health<=0?"🚨 RESTORAN DITUTUP…":(S.idx+1>=S.list.length?"🏁 LIHAT HASIL":"➡️ ORDER BERIKUTNYA")}</button></div>
+  </div>`;
+  fb.scrollIntoView({behavior:"smooth",block:"end"});
+}
+
+function proceed(){
+  if(S.health<=0) return screenResult(true);
+  S.idx++; nextQuestion();
+}
+
+function screenResult(closed=false){
+  const total=S.list.length, pct=Math.round(S.correct/total*100), nilai=pct;
+  const tjLog=S.log.filter(l=>l.tj), tjOk=tjLog.filter(l=>l.ok).length;
+  const pred = predikat(pct, closed);
+  let stars,msg;
+  if(closed){stars="💀";msg="Terlalu banyak «bahan beracun» lolos ke meja pelanggan. Bersihkan hati, pelajari kembali ayat-ayatnya, lalu buka shift baru!";}
+  else if(pct>=90){stars="⭐⭐⭐";msg="Luar biasa! Dapur bersih, hati bersih. Restoran meraih 3 Bintang Michelin & Sertifikat Halal-Profesional.";}
+  else if(pct>=75){stars="⭐⭐";msg="Mantap! Restoran selamat dengan 2 bintang. Sedikit lagi menuju kesempurnaan.";}
+  else if(pct>=60){stars="⭐";msg="Restoran selamat dengan 1 bintang. Perbaiki beberapa resep (materi) yang masih meleset.";}
+  else{stars="🍳";msg="Restoran lolos dengan catatan. Pelajari kembali pembahasan, lalu coba lagi!";}
+
+  /* simpan ke leaderboard sekali saja */
+  if(!S.saved){
+    S.saved=true; S.id=Date.now()+"_"+Math.random().toString(36).slice(2,7);
+    const lb=loadLB();
+    lb.push({id:S.id,nama:S.nama,kelas:S.kelas,mode:S.mode,nilai,benar:S.correct,total,poin:S.score,streak:S.best,tjBenar:tjOk,tjTotal:tjLog.length,health:S.health,predikat:pred,ts:Date.now()});
+    saveLB(lb);
+  }
+  const rank = sortedLB().findIndex(e=>e.id===S.id)+1, totalLB=loadLB().length;
+
+  app.innerHTML = `
+  <div class="card">
+    <div class="stage-big">${stars}</div>
+    <h1>${pred.toUpperCase()}</h1>
+    <p class="sub">${msg}</p>
+    <div class="qbox center" style="background:#fff6d6;border-color:var(--gold)">🏆 Posisi di Papan Peringkat: <b style="font-size:1.4rem;color:var(--red)">#${rank}</b> dari ${totalLB} peserta ${rank===1?"— JUARA! 🥇":rank<=3?"— Podium! 🎉":""}</div>
+    <div class="grid3">
+      <div class="box"><div class="big">${S.score}</div>Total Poin ⭐</div>
+      <div class="box"><div class="big">${S.correct}/${total}</div>Jawaban Benar</div>
+      <div class="box"><div class="big">${nilai}</div>Nilai (skala 100)</div>
+      <div class="box"><div class="big">${S.best}</div>Streak Terbaik 🔥</div>
+      <div class="box"><div class="big">${tjOk}/${tjLog.length}</div>Tajwid Benar 🎯</div>
+      <div class="box"><div class="big">${S.health}%</div>Kesehatan Restoran ❤️</div>
+    </div>
+    ${!closed?`<div class="cert">
+      <div>🏅 SERTIFIKAT 🏅</div><h3>${esc(S.nama)}${S.kelas?` — ${esc(S.kelas)}`:""}</h3>
+      <p>telah menyelesaikan misi <b>The Great Kitchen Rescue</b> (${S.mode==="santai"?"Mode Santai":"Mode Kompetisi"})<br>Materi: Sifat Munafik & Keras Hati Tidak Akan Membuat Maju<br>dengan predikat <b>${pred}</b> • Nilai <b>${nilai}</b></p>
+      <p style="margin-top:8px;font-size:.85rem;color:#777">${new Date().toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p>
+    </div>`:""}
+    <div class="center">
+      <button class="btn" onclick="copyResult(${nilai})">📋 Salin Hasil (WA Guru)</button>
+      <button class="btn blue" onclick="exportDetail()">📊 Ekspor Detail Jawaban (CSV)</button>
+      <button class="btn gray" onclick="screenReview()">📖 Pembahasan</button>
+      <button class="btn gray" onclick="screenLeaderboard('${S.id}')">🏆 Leaderboard</button>
+      <button class="btn green" onclick="screenStart()">🔁 Main Lagi</button>
+    </div>
+    <h3>🏆 Papan Peringkat — 10 Besar</h3>
+    ${lbTable(10, S.id)}
+    <div class="reflect">
+      «Dapur yang paling sulit dibersihkan bukanlah dapur yang penuh minyak, melainkan hati yang penuh nifaq dan keras. Pelanggan mungkin bisa ditipu dengan presentasi, tetapi Allah Maha Melihat — <span class="ar">يُخَٰدِعُونَ ٱللَّهَ وَهُوَ خَٰدِعُهُمْ</span>. Jadilah chef yang berjalan di atas cahaya — <span class="ar">فَهُوَ عَلَىٰ نُورٍ مِّن رَّبِّهِۦ</span>.»
+    </div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+function copyResult(nilai){
+  const txt=`🍳 THE GREAT KITCHEN RESCUE — Hasil Ulangan PAI\nNama: ${S.nama}${S.kelas?" ("+S.kelas+")":""}\nMode: ${S.mode==="santai"?"Santai":"Kompetisi"}\nBenar: ${S.correct}/${S.list.length}\nNilai: ${nilai}\nPoin: ${S.score} ⭐ | Streak: ${S.best} | Tajwid: ${S.log.filter(l=>l.tj&&l.ok).length}/${S.log.filter(l=>l.tj).length}\nTanggal: ${new Date().toLocaleString("id-ID")}`;
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("✅ Hasil disalin! Tempel di WhatsApp guru."),()=>prompt("Salin teks berikut:",txt));
+}
+
+function screenReview(){
+  app.innerHTML = `
+  <div class="card">
+    <h2>📖 Pembahasan Head Chef</h2>
+    <p class="sub">Merah = perlu diperbaiki, hijau = sudah tepat</p>
+    ${S.log.map((l,i)=>`<div class="review-item ${l.ok?"ok":""}">
+      <b>${i+1}. ${l.tj?"🎯 ":""}</b>${l.q}<br>
+      <span style="color:${l.ok?"var(--green)":"var(--red)"}">${l.ok?"✅ Benar":(l.ans<0?"⏰ Waktu habis":"❌ Jawabanmu: "+LETTERS[l.ans]+". "+strip(l.o[l.ans]))}</span><br>
+      <b>Kunci: ${LETTERS[l.key]}.</b> ${l.o[l.key]}<br>
+      <small>💡 ${l.e}</small>
+    </div>`).join("")}
+    <div class="center"><button class="btn blue" onclick="exportDetail()">📊 Ekspor Detail (CSV)</button> <button class="btn" onclick="screenResult()">⬅️ Kembali ke Hasil</button> <button class="btn green" onclick="screenStart()">🔁 Main Lagi</button></div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+screenStart();
+</script>
+</body>
+</html>
